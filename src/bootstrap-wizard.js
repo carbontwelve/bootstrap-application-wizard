@@ -515,10 +515,15 @@
 
             var self = this;
             var _close = function() {
-                self.reset();
                 self.close();
-                self.trigger("closed");
             };
+            var _modalClosed = function() {
+                self.reset();
+                self.trigger("closed");
+            }
+            
+            // Register listener for backdrop hide
+            this.modal.on("hide.bs.modal", _modalClosed);
 
             // Register Close Button
             this.closeButton.click(_close);
