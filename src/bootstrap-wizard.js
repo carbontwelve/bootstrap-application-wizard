@@ -523,7 +523,7 @@
             }
             
             // Register listener for backdrop hide
-            this.modal.on("hide.bs.modal", _modalClosed);
+            this.modal.on("hidden.bs.modal", _modalClosed);
 
             // Register Close Button
             this.closeButton.click(_close);
