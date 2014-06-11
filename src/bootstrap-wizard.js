@@ -694,7 +694,15 @@
             this.modal.modal("hide");
             return this;
         },
-
+        
+        destroy: function() {
+            this.log("destroying");
+            
+            this.modal.data('bs.modal', null);
+            this.modal.remove();
+            
+            return this;
+        },
 
         show: function(modalOptions) {
             this.log("showing");
