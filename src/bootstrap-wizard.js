@@ -864,9 +864,9 @@
                                 if (cardToValidate.index != currentCard.index) {
                                     cardToValidate.prev.deselect();
                                     cardToValidate.prev.markVisited();
-                                    cardToValidate.select();
                                 }
                                 if (!cardToValidate.isDisabled()) {
+                                    cardToValidate.select();
                                     ok = cardToValidate.validate();
                                 }
                                 else {
