@@ -122,7 +122,7 @@
         enable: function(noActivate) {
             this.log("enabling");
             this.nav.removeClass('hide');
-            if (noActivate !== undefined) {
+            if (noActivate == undefined) {
                 this.nav.addClass("active");
             }
             this._disabled = false;
