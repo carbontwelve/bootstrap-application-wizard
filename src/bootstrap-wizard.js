@@ -597,14 +597,16 @@
             return this;
         },
         
-        errorPopover: function(el, msg, allowHtml) {
+        errorPopover: function(el, msg, allowHtml, position) {
             this.log("launching popover on", el);
             allowHtml = typeof allowHtml !== "undefined" ? allowHtml : false;
+            position = typeof position !== "undefined" ? position : 'right';
             var popover = el.popover('destroy').popover({
                 content: msg,
                 trigger: "manual",
                 html: allowHtml,
-                container: el.parents('.form-group')
+                container: el.parents('.form-group'),
+                placement: position
             }).addClass("error-popover").popover("show").next(".popover");
 
             el.parents('.form-group').find('.popover').addClass("error-popover");
