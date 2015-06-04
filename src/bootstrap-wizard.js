@@ -123,7 +123,7 @@
             this.log("enabling");
             this.nav.removeClass('hide');
             if (noActivate !== undefined) {
-            this.nav.addClass("active");
+                this.nav.addClass("active");
             }
             this._disabled = false;
             this.trigger("enabled");
@@ -528,7 +528,7 @@
                 self.reset();
                 self.trigger("closed");
             }
-            
+
             // Register listener for backdrop hide
             this.modal.on("hidden.bs.modal", _modalClosed);
 
@@ -537,10 +537,10 @@
             this.cancelButton.click(_close);
 
             this.wizardSteps.on("click", "li.already-visited a.wizard-nav-link", this,
-            function(event) {
-                var index = parseInt($(event.target).data("navindex"));
-                event.data.setCard(index);
-            });
+                function(event) {
+                    var index = parseInt($(event.target).data("navindex"));
+                    event.data.setCard(index);
+                });
 
             if ( this.title.length != 0 ) {
                 this.setTitle(this.title);
@@ -703,13 +703,11 @@
             this.modal.modal("hide");
             return this;
         },
-        
+
         destroy: function() {
             this.log("destroying");
-            
             this.modal.data('bs.modal', null);
             this.modal.remove();
-            
             return this;
         },
 
@@ -875,18 +873,18 @@
                              * any validators that trigger errorPopovers can
                              * display correctly
                              */
-                            
+
                             if (cardToValidate.index != currentCard.index) {
                                 cardToValidate.prev.deselect();
                                 cardToValidate.prev.markVisited();
-                                }
-                                if (!cardToValidate.isDisabled()) {
-                                cardToValidate.select();
-                                    ok = cardToValidate.validate();
                             }
-                                else {
-                                    ok = true;
-                                }
+                            if (!cardToValidate.isDisabled()) {
+                                cardToValidate.select();
+                                ok = cardToValidate.validate();
+                            }
+                            else {
+                                ok = true;
+                            }
 
                             if (!ok) {
                                 return cardToValidate;
@@ -934,12 +932,48 @@
 
             if (percent == 100) {
                 this.log("progress is 100, animating progress bar");
-                this.progressContainer.find('.progress').addClass("active");
+                this.activateProgressBar();
             }
             else if (percent == 0) {
                 this.log("progress is 0, disabling animation");
-                this.progressContainer.find('.progress').removeClass("active");
+                this.deactivateProgressBar();
             }
+        },
+
+        setProgressBarColor: function( color ){
+            var barContainer = this.progressContainer.find('.progress').find('.progress-bar');
+
+            barContainer.removeClass( function( index, css ){
+                return (css.match (/(^|\s)progress-bar-\S+/g) || []).join(' ');
+            });
+
+            switch ( color )
+            {
+                case 'success':
+                    barContainer.addClass('progress-bar-success');
+                    break;
+
+                case 'warning':
+                    barContainer.addClass('progress-bar-warning');
+                    break;
+
+                case 'danger':
+                    barContainer.addClass('progress-bar-danger');
+                    break;
+
+                case 'info':
+                default:
+                    barContainer.addClass('progress-bar-info');
+                    break;
+            }
+        },
+
+        deactivateProgressBar: function(){
+            this.progressContainer.find('.progress').removeClass("active");
+        },
+
+        activateProgressBar: function(){
+            this.progressContainer.find('.progress').addClass("active");
         },
 
         getNextCard: function() {
@@ -1107,7 +1141,6 @@
             return this.modal.find(selector);
         },
 
-
         /*
          * the next 3 functions are to be called by the custom submit event
          * handler.  the idea is that after you make an ajax call to submit
@@ -1118,36 +1151,42 @@
         submitSuccess: function() {
             this.log("submit success");
             this._submitting = false;
+            this.deactivateProgressBar();
+            this.setProgressBarColor('success');
             this.showSubmitCard("success");
             this.trigger("submitSuccess");
         },
 
         submitFailure: function() {
             this.log("submit failure");
+            this.deactivateProgressBar();
+            this.setProgressBarColor('danger');
             this._submitting = false;
             this.showSubmitCard("failure");
             this.trigger("submitFailure");
 
             // Unlock the cards, and reset the buttons, to allow the user to retry
-            this.unlockCards();
-            this.nextButton.hide();
-            this.enableNextButton();
-            this._readyToSubmit = true;
-            this.trigger("readySubmit");
+            //this.unlockCards();
+            //this.nextButton.hide();
+            //this.enableNextButton();
+            //this._readyToSubmit = true;
+            //this.trigger("readySubmit");
         },
 
         submitError: function() {
             this.log("submit error");
+            this.deactivateProgressBar();
+            this.setProgressBarColor('danger');
             this._submitting = false;
             this.showSubmitCard("error");
             this.trigger("submitError");
 
             // Unlock the cards, and reset the buttons, to allow the user to retry
-            this.unlockCards();
-            this.nextButton.hide();
-            this.enableNextButton();
-            this._readyToSubmit = true;
-            this.trigger("readySubmit");
+            //this.unlockCards();
+            //this.nextButton.hide();
+            //this.enableNextButton();
+            //this._readyToSubmit = true;
+            //this.trigger("readySubmit");
         },
 
 
