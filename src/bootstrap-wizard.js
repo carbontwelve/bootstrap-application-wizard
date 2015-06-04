@@ -25,7 +25,7 @@
     };
 
     $.fn.wizard.logging = false;
-    
+
     var WizardCard = function(wizard, card, index, prev, next) {
         this.wizard 	= wizard;
         this.index 		= index;
@@ -41,7 +41,7 @@
         this._loaded 	= false;
         this._events =	 {};
     };
-    
+
     WizardCard.prototype = {
         select: function() {
             this.log("selecting");
@@ -121,12 +121,12 @@
 
         enable: function() {
             this.log("enabling");
-            
+
             // Issue #38 Hiding navigation link when hide card
             // Awaiting approval
             //
             // this.nav.removeClass('hide');
-            
+
             this.nav.addClass("active");
             this._disabled = false;
             this.trigger("enabled");
@@ -250,6 +250,19 @@
             this.nav.find("a").toggleClass("wizard-step-error", toggle);
         },
 
+        executeFunctionByName : function(functionName, context /*, args */)
+        {
+            var args = Array.prototype.slice.call(arguments, 2);
+            var namespaces = functionName.split(".");
+            var func = namespaces.pop();
+            for (var i = 0; i < namespaces.length; i++) {
+                context = context[namespaces[i]];
+            }
+
+            this.log('Loading: ' + functionName);
+            return context[func].apply(context, args);
+        },
+
         validate: function() {
             var failures = false;
             var self = this;
@@ -270,7 +283,7 @@
                     msg: ""
                 };
 
-                var vret = window[v](el);
+                var vret = self.executeFunctionByName(v, window, el);
                 $.extend(ret, vret);
 
                 // Add-On
@@ -283,28 +296,28 @@
 
                 if (!ret.status) {
                     failures = true;
-                    
+
                     // Updated to show error on correct form-group
                     el.parents("div.form-group").toggleClass("has-error", true);
-                    
+
                     // This allows the use of a INPUT+BTN used as one according to boostrap layout
                     // for the wizard it is required to add an id with btn-(ID of Input)
                     // this will make sure the popover is drawn on the correct element
                     if ( $('#btn-' + el.attr('id')).length === 1 ) {
                         el = $('#btn-' + el.attr('id'));
                     }
-                    
+
                     self.wizard.errorPopover(el, ret.msg);
                 } else {
                     el.parents("div.form-group").toggleClass("has-error", false);
-                    
+
                     // This allows the use of a INPUT+BTN used as one according to boostrap layout
                     // for the wizard it is required to add an id with btn-(ID of Input)
                     // this will make sure the popover is drawn on the correct element
                     if ( $('#btn-' + el.attr('id')).length === 1 ) {
                         el = $('#btn-' + el.attr('id'));
                     }
-                    
+
                     try {
                         el.popover("destroy");
                     }
@@ -355,7 +368,7 @@
             }
             return validated;
         },
-        
+
         log: function() {
             if (!window.console || !$.fn.wizard.logging) {return;}
             var prepend = "card '"+this.name+"': ";
@@ -369,9 +382,9 @@
             return this.nav.hasClass("active");
         }
     };
-    
+
     Wizard = function(markup, args) {
-        
+
         /* TEMPLATE */
         this.wizard_template = [
             '<div  class="modal fade wizard">',
@@ -410,12 +423,12 @@
                                 '</div>',
                             '</form>',
                         '</div>',
-                    
+
                     '</div>',
                 '</div>',
             '</div>'
         ];
-        
+
         this.args = {
             keyboard: true,
             backdrop: true,
@@ -436,12 +449,12 @@
             },
             formClass: "form-horizontal"
         };
-        
+
         $.extend(this.args, args || {});
-        
+
         this._create(markup);
     };
-    
+
     Wizard.prototype = {
         log: function() {
             if (!window.console || !$.fn.wizard.logging) {return;}
@@ -450,20 +463,20 @@
             args.push.apply(args, arguments);
             console.log.apply(console, args);
         },
-        
+
         _create: function(markup) {
             this.markup = $(markup);
             this.title					= 	this.markup.data('title');
             this.submitCards 			= 	this.markup.find(".wizard-error,.wizard-failure,.wizard-success,.wizard-loading");
             this.el						=	$(this.wizard_template.join('\n'));
             $('body').append(this.el);
-            
+
             this.modal 					= 	this.el.modal({
                 keyboard: this.args.keyboard,
                 show: this.args.show,
                 backdrop: this.args.backdrop
             });
-            
+
             this.dimensions				=	{
                                                 contentHeight: this.args.contentHeight,
                                                 contentWidth: this.args.contentWidth
@@ -489,7 +502,7 @@
             this.cancelButton 			= 	this.footer.find(".wizard-cancel");
             this.backButton 			= 	this.footer.find(".wizard-back");
             this.nextButton 			= 	this.footer.find(".wizard-next");
-            
+
             this._cards 				= 	[];
             this.cards 					= 	{};
             this._readyToSubmit 		= 	false;
@@ -497,7 +510,7 @@
             this._submitting 			= 	false;
             this._events 				= 	{};
             this._firstShow 			= 	true;
-            
+
             this._createCards();
 
             this.nextButton.click(this, this._handleNextClick);
@@ -506,10 +519,10 @@
             this.cancelButton.text(this.args.buttons.cancelText);
             this.backButton.text(this.args.buttons.backText);
             this.nextButton.text(this.args.buttons.nextText);
-            
+
             // Apply Form Class(es)
             this.form.addClass(this.args.formClass);
-            
+
             // Register Array Holder for popovers
             this.popovers				= [];
 
@@ -523,29 +536,29 @@
             // Register Close Button
             this.closeButton.click(_close);
             this.cancelButton.click(_close);
-            
+
             this.wizardSteps.on("click", "li.already-visited a.wizard-nav-link", this,
             function(event) {
                 var index = parseInt($(event.target).data("navindex"));
                 event.data.setCard(index);
             });
-            
+
             if ( this.title.length != 0 ) {
                 this.setTitle(this.title);
             }
-            
+
             this.on("submit", this._defaultSubmit);
-            
+
             // Set Modal Dimensions
             this.autoDimensions();
         },
-        
+
         autoDimensions: function() {
             // DO NOT REMOVE DISPLAY ; Temporary display is required for calculation
             this.modal.css('display', 'block');
-            
+
             this.dimensions.header = this.header.outerHeight(true);
-            
+
             // Navigation Pane is dyanmic build on card content
             // Navigation Pane === BASE Inner Content Height
             this.dimensions.navigation = this.wizardSteps.outerHeight(true);
@@ -553,39 +566,39 @@
                 this.dimensions.navigation = this.dimensions.contentHeight;
                 this.navContainer.height( (this.dimensions.contentHeight-30) - this.progressContainer.outerHeight(true));
             }
-            
+
             // Dimension Alias ( Body Height === (Navigation Height) )
             this.dimensions.body = this.dimensions.navigation;
-            
+
             // Apply OuterHeight of navigation to it's parent wizardSteps
             this.wizardSteps.height(this.dimensions.body);
-            
+
             // Modal Height === (Header + Content)
             this.dimensions.modal = (this.dimensions.header + this.dimensions.navigation);
             this.content.height(this.dimensions.modal + 'px');
             this.dialog.width(this.dimensions.contentWidth);
-            
+
             this.body.height(this.dimensions.body + 'px');
             this.wizardCards.height(this.dimensions.body + 'px');
-            
+
             // Footer Height
             this.dimensions.footer = this.footer.outerHeight(true);
-            
+
             // Card Container === (Body - Footer)
             this.dimensions.cardContainer = (this.dimensions.body - this.dimensions.footer);
             this.wizardCardContainer.height(this.dimensions.cardContainer);
-            
+
             // Reposition
-            this.dimensions.offset = ($(window).height() - this.dialog.height()) / 2;			
+            this.dimensions.offset = ($(window).height() - this.dialog.height()) / 2;
             this.dialog.css({
                 'margin-top': this.dimensions.offset + 'px',
                 'padding-top': 0
             });
-            
+
             // DO NOT REMOVE NEXT LINE
             this.modal.css('display', '');
         },
-        
+
         setTitle: function(title) {
             this.log("setting title to", title);
             this.modal.find(".wizard-title").first().text(title);
@@ -597,7 +610,7 @@
             this.modal.find(".wizard-subtitle").first().text(title);
             return this;
         },
-        
+
         errorPopover: function(el, msg, allowHtml) {
             this.log("launching popover on", el);
             allowHtml = typeof allowHtml !== "undefined" ? allowHtml : false;
@@ -609,15 +622,15 @@
             }).addClass("error-popover").popover("show").next(".popover");
 
             el.parents('.form-group').find('.popover').addClass("error-popover");
-            
+
             this.popovers.push(el);
-            
+
             return popover;
         },
-        
+
         destroyPopover: function(pop) {
             pop = $(pop);
-            
+
             /*
              * this is the element that the popover was created for
              */
@@ -632,7 +645,7 @@
                 pop.popover("hide");
             }
         },
-        
+
         hidePopovers: function(el) {
             this.log("hiding all popovers");
             var self = this;
@@ -640,7 +653,7 @@
             $.each(this.popovers, function(i, p) {
                 self.destroyPopover(p);
             });
-            
+
             this.modal.find('.has-error').removeClass('has-error');
             this.popovers = [];
         },
@@ -697,14 +710,14 @@
                 this.setCard(0);
                 this._firstShow = false;
             }
-            if (this.args.showCancel) { 
-                this.cancelButton.show(); 
+            if (this.args.showCancel) {
+                this.cancelButton.show();
             } else {
-                this.cancelButton.hide(); 
+                this.cancelButton.hide();
             }
             if (this.args.showClose) { this.closeButton.show(); }
             this.modal.modal('show');
-            
+
             return this;
         },
 
@@ -745,7 +758,7 @@
 
         reset: function() {
             this.log("resetting");
-            
+
             this.updateProgressBar(0);
             this.hideSubmitCards();
 
@@ -754,13 +767,13 @@
 
             this.enableNextButton();
             this.showButtons();
-            
+
             this.hidePopovers();
 
             this.trigger("reset");
             return this;
         },
-        
+
         /*
          * this handles switching to the next card or previous card, taking
          * care to skip over disabled cards
@@ -877,7 +890,7 @@
 
                 if (this.args.progressBarCurrent) {
                     this.percentComplete = i * 100.0 / this._cards.length;
-                    this.updateProgressBar(this.percentComplete);					
+                    this.updateProgressBar(this.percentComplete);
                 }
                 else {
                     var lastPercent = this.percentComplete;
@@ -951,10 +964,10 @@
 
         showButtons: function() {
             this.log("showing buttons");
-            if (this.args.showCancel) { 
-                this.cancelButton.show(); 
+            if (this.args.showCancel) {
+                this.cancelButton.show();
             } else {
-                this.cancelButton.hide(); 
+                this.cancelButton.hide();
             }
             if (this.args.showClose) { this.closeButton.show(); };
             this.nextButton.show();
@@ -986,7 +999,7 @@
             var currentCard = null;
             var wizard = this;
             var self = this;
-            
+
             self.log("Creating Cards");
 
             var cards = this.modal.find(".wizard-cards .wizard-card");
@@ -1049,10 +1062,10 @@
                     name: $(this).attr('name'),
                     value: $(this).val()
                 };
-                
+
                 form.push(formObj);
             });
-            
+
             return form;
         },
 
@@ -1061,10 +1074,10 @@
             this.form.find('input[disabled][data-serialize="1"]').each(function() {
                 form = form + '&' + $(this).attr('name') + '=' + $(this).val();
             });
-            
+
             return form;
         },
-        
+
         find: function(selector) {
             return this.modal.find(selector);
         },
@@ -1166,6 +1179,6 @@
             });
         }
     };
-    
-    
+
+
 }(window.jQuery));
