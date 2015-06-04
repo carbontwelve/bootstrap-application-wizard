@@ -119,15 +119,12 @@
             return this;
         },
 
-        enable: function() {
+        enable: function(noActivate) {
             this.log("enabling");
-
-            // Issue #38 Hiding navigation link when hide card
-            // Awaiting approval
-            //
-            // this.nav.removeClass('hide');
-
+            this.nav.removeClass('hide');
+            if (noActivate !== undefined) {
             this.nav.addClass("active");
+            }
             this._disabled = false;
             this.trigger("enabled");
             return this;
@@ -139,10 +136,7 @@
             this.nav.removeClass("active already-visited");
             if (hideCard) {
                 this.el.hide();
-                // Issue #38 Hiding navigation link when hide card
-                // Awaiting approval
-                //
-                // this.nav.addClass('hide');
+                this.nav.addClass('hide');
             }
             this.trigger("disabled");
             return this;
@@ -528,10 +522,15 @@
 
             var self = this;
             var _close = function() {
-                self.reset();
                 self.close();
-                self.trigger("closed");
             };
+            var _modalClosed = function() {
+                self.reset();
+                self.trigger("closed");
+            }
+            
+            // Register listener for backdrop hide
+            this.modal.on("hidden.bs.modal", _modalClosed);
 
             // Register Close Button
             this.closeButton.click(_close);
@@ -611,14 +610,16 @@
             return this;
         },
 
-        errorPopover: function(el, msg, allowHtml) {
+        errorPopover: function(el, msg, allowHtml, position) {
             this.log("launching popover on", el);
             allowHtml = typeof allowHtml !== "undefined" ? allowHtml : false;
-            var popover = el.popover({
+            position = typeof position !== "undefined" ? position : 'right';
+            var popover = el.popover('destroy').popover({
                 content: msg,
                 trigger: "manual",
                 html: allowHtml,
-                container: el.parents('.form-group')
+                container: el.parents('.form-group'),
+                placement: position
             }).addClass("error-popover").popover("show").next(".popover");
 
             el.parents('.form-group').find('.popover').addClass("error-popover");
@@ -702,7 +703,15 @@
             this.modal.modal("hide");
             return this;
         },
-
+        
+        destroy: function() {
+            this.log("destroying");
+            
+            this.modal.data('bs.modal', null);
+            this.modal.remove();
+            
+            return this;
+        },
 
         show: function(modalOptions) {
             this.log("showing");
@@ -866,15 +875,23 @@
                              * any validators that trigger errorPopovers can
                              * display correctly
                              */
+                            
                             if (cardToValidate.index != currentCard.index) {
                                 cardToValidate.prev.deselect();
                                 cardToValidate.prev.markVisited();
+                                }
+                                if (!cardToValidate.isDisabled()) {
                                 cardToValidate.select();
+                                    ok = cardToValidate.validate();
                             }
-                            ok = cardToValidate.validate();
+                                else {
+                                    ok = true;
+                                }
+
                             if (!ok) {
                                 return cardToValidate;
                             }
+
                             cardToValidate = cardToValidate.next;
                         }
 
