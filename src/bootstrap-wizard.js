@@ -383,7 +383,7 @@
         }
     };
 
-    Wizard = function(markup, args) {
+    var Wizard = function(markup, args) {
 
         /* TEMPLATE */
         this.wizard_template = [
