@@ -445,7 +445,7 @@
                 nextText: "Next",
                 backText: "Back",
                 submitText: "Submit",
-                submittingText: "Submitting...",
+                submittingText: "Submitting..."
             },
             formClass: "form-horizontal"
         };
