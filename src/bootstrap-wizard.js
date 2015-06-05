@@ -772,6 +772,7 @@
 
             this.updateProgressBar(0);
             this.hideSubmitCards();
+            this.lastAjaxResponse = undefined;
 
             this.setCard(0);
             this.lockCards();
