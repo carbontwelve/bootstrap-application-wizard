@@ -268,8 +268,9 @@
                 self.log("validating individiual inputs");
                 el = $(el);
 
-                var v = el.data("validate");
-                if (!v) {return;}
+                var onValidateCallback = el.data("onvalidated");
+                var validationCallback = el.data("validate");
+                if (!validationCallback) {return;}
 
                 var ret = {
                     status: true,
@@ -277,7 +278,7 @@
                     msg: ""
                 };
 
-                var vret = self.executeFunctionByName(v, window, el);
+                var vret = self.executeFunctionByName(validationCallback, window, el);
                 $.extend(ret, vret);
 
                 // Add-On
@@ -303,6 +304,12 @@
 
                     self.wizard.errorPopover(el, ret.msg);
                 } else {
+
+                    if ( onValidateCallback )
+                    {
+                        self.executeFunctionByName(onValidateCallback, window, el);
+                    }
+
                     el.parents("div.form-group").toggleClass("has-error", false);
 
                     // This allows the use of a INPUT+BTN used as one according to boostrap layout
