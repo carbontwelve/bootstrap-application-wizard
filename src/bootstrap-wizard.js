@@ -57,7 +57,6 @@
                 this.trigger("selected");
             }
 
-
             /*
              * this is ugly, but we're handling the changing of the wizard's
              * buttons here, in the WizardCard select.  so when a card is
@@ -378,6 +377,9 @@
     };
 
     var Wizard = function(markup, args) {
+
+        // Last Ajax Response may be used on error to identify server side validation and jump to appropriate slide
+        this.lastAjaxResponse = undefined;
 
         /* TEMPLATE */
         this.wizard_template = [
@@ -1196,7 +1198,6 @@
             wizard._onBackClick.call(wizard);
         },
 
-
         /*
          * this function is attached by default to the wizard's "submit" event.
          * if you choose to implement your own custom submit logic, you should
@@ -1209,15 +1210,16 @@
                 data: wizard.serialize(),
                 dataType: "json"
             }).done(function(response) {
+                wizard.lastAjaxResponse = response;
                 wizard.submitSuccess();
                 wizard.hideButtons();
                 wizard.updateProgressBar(0);
-            }).fail(function() {
+            }).fail(function(response) {
+                wizard.lastAjaxResponse = response;
                 wizard.submitFailure();
                 wizard.hideButtons();
             });
         }
     };
-
 
 }(window.jQuery));
