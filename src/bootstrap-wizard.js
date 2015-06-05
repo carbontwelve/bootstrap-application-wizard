@@ -337,15 +337,19 @@
             /*
              * run the validator embedded in the card
              */
-            var cardValidator = window[this.el.data("validate")];
-            if (cardValidator) {
+            var cardValidator = this.el.data("validate");
+            if (cardValidator)
+            {
                 this.log("running html-embedded card validator");
-                var cardValidated = cardValidator(this);
+                var cardValidated = this.executeFunctionByName(cardValidator, window, $(this.el));
+
                 if (typeof(cardValidated) == "undefined" || cardValidated == null) {
                     cardValidated = true;
                 }
                 if (!cardValidated) failures = true;
                 this.log("after running html-embedded card validator, failures is", failures);
+            }else{
+                this.log("card validator not found");
             }
 
             /*
