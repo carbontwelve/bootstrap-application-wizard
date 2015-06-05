@@ -223,20 +223,21 @@
             name = name.toLowerCase();
 
             this.log("looking for listener " + name);
-            var listener = window[this.el.data(name)];
-            if (listener) {
-                this.log("calling listener " + name);
-                var wizard = this.wizard;
+
+            var listener = this.el.data(name);
+            if ( listener ) {
+                this.log("found listener: " + listener);
+                name = listener;
 
                 try {
-                    var vret = listener(this);
+                    var vret = this.executeFunctionByName(name, window, this);
                 }
                 catch (e) {
                     this.log("exception calling listener " + name + ": ", e);
                 }
-            }
-            else {
-                this.log("didn't find listener " + name);
+
+            }else{
+                this.log("listener " + name + "not found");
             }
         },
 
