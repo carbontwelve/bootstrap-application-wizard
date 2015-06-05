@@ -223,20 +223,21 @@
             name = name.toLowerCase();
 
             this.log("looking for listener " + name);
-            var listener = window[this.el.data(name)];
-            if (listener) {
-                this.log("calling listener " + name);
-                var wizard = this.wizard;
+
+            var listener = this.el.data(name);
+            if ( listener ) {
+                this.log("found listener: " + listener);
+                name = listener;
 
                 try {
-                    var vret = listener(this);
+                    var vret = this.executeFunctionByName(name, window, this);
                 }
                 catch (e) {
                     this.log("exception calling listener " + name + ": ", e);
                 }
-            }
-            else {
-                this.log("didn't find listener " + name);
+
+            }else{
+                this.log("listener " + name + "not found");
             }
         },
 
@@ -268,8 +269,9 @@
                 self.log("validating individiual inputs");
                 el = $(el);
 
-                var v = el.data("validate");
-                if (!v) {return;}
+                var onValidateCallback = el.data("onvalidated");
+                var validationCallback = el.data("validate");
+                if (!validationCallback) {return;}
 
                 var ret = {
                     status: true,
@@ -277,7 +279,7 @@
                     msg: ""
                 };
 
-                var vret = self.executeFunctionByName(v, window, el);
+                var vret = self.executeFunctionByName(validationCallback, window, el);
                 $.extend(ret, vret);
 
                 // Add-On
@@ -303,6 +305,12 @@
 
                     self.wizard.errorPopover(el, ret.msg);
                 } else {
+
+                    if ( onValidateCallback )
+                    {
+                        self.executeFunctionByName(onValidateCallback, window, el);
+                    }
+
                     el.parents("div.form-group").toggleClass("has-error", false);
 
                     // This allows the use of a INPUT+BTN used as one according to boostrap layout
@@ -329,15 +337,19 @@
             /*
              * run the validator embedded in the card
              */
-            var cardValidator = window[this.el.data("validate")];
-            if (cardValidator) {
+            var cardValidator = this.el.data("validate");
+            if (cardValidator)
+            {
                 this.log("running html-embedded card validator");
-                var cardValidated = cardValidator(this);
+                var cardValidated = this.executeFunctionByName(cardValidator, window, $(this.el));
+
                 if (typeof(cardValidated) == "undefined" || cardValidated == null) {
                     cardValidated = true;
                 }
                 if (!cardValidated) failures = true;
                 this.log("after running html-embedded card validator, failures is", failures);
+            }else{
+                this.log("card validator not found");
             }
 
             /*
